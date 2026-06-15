@@ -1,0 +1,29 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+.DS_Store
+
+# .NET Backend
+dotnet_backend/bin/
+dotnet_backend/obj/
+dotnet_backend/appsettings.Development.json
+
+# Heavy AI Models & Data
+weights/
+enhanced_frames/
+my_test_images/
+dataset/
+*.db
+*.sqlite3
+
+# Ignore forensic db specifically so it doesn't upload the seeded data unless you want it to
+# forensic_suspects.db (uncomment if you don't want the db uploaded)
+
+*.log
+test_results.json

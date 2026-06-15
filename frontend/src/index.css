@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #040812;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  /* Neon glow on buttons */
+  .btn-primary {
+    @apply bg-gradient-to-r from-forensic-500 to-forensic-700
+           hover:from-forensic-600 hover:to-forensic-900
+           text-white font-semibold rounded-xl px-6 py-3
+           transition-all duration-300 shadow-lg
+           hover:shadow-forensic-500/30 hover:shadow-xl
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+           disabled:hover:shadow-none;
+  }
+
+  /* Drag-drop zone */
+  .drop-zone {
+    @apply border-2 border-dashed border-white/20 rounded-2xl
+           hover:border-forensic-500/60 hover:bg-forensic-500/5
+           transition-all duration-300 cursor-pointer;
+  }
+
+  .drop-zone.active {
+    @apply border-forensic-500 bg-forensic-500/10 scale-[1.01];
+  }
+
+  /* Score badge */
+  .score-high   { @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30; }
+  .score-medium { @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30; }
+  .score-low    { @apply bg-red-500/20 text-red-400 border border-red-500/30; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(79,110,247,0.4); border-radius: 3px; }
+
+/* Range input styling */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f6ef7, #2d43c4);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(79,110,247,0.5);
+  border: 2px solid rgba(255,255,255,0.2);
+}

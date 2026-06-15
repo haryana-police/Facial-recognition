@@ -1,0 +1,6 @@
+rank,id,name,score,is_match,image_path
+1,1,Abdullah Gul,1.0,True,dataset\lfw_subset\Abdullah_Gul\Abdullah_Gul_0001.jpg
+2,17,Abdullah Gul,0.812044,True,dataset\lfw_subset\Abdullah_Gul\Abdullah_Gul_0017.jpg
+3,7,Abdullah Gul,0.807609,True,dataset\lfw_subset\Abdullah_Gul\Abdullah_Gul_0007.jpg
+4,13,Abdullah Gul,0.779101,True,dataset\lfw_subset\Abdullah_Gul\Abdullah_Gul_0013.jpg
+5,19,Abdullah Gul,0.762977,True,dataset\lfw_subset\Abdullah_Gul\Abdullah_Gul_0019.jpg
