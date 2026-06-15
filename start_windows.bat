@@ -33,6 +33,12 @@ if not exist "weights\yolov8n-face.pt" (
 )
 echo - All weights are present!
 
+echo - Checking Database...
+if not exist "forensic_suspects.db" (
+    echo   - Database not found. Seeding initial database...
+    python scripts\seed_database.py
+)
+
 :: 2. FRONTEND SETUP
 echo.
 echo [2/3] Checking React Frontend...
