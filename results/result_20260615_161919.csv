@@ -1,6 +1,0 @@
-rank,id,name,score,is_match,image_path
-1,526,Virat Kohli,0.720322,True,my_test_images/virat.jpg
-2,527,Virat Kohli,0.616687,False,my_test_images/virat2.jpg
-3,143,Andre Agassi,0.192309,False,dataset\lfw_subset\Andre_Agassi\Andre_Agassi_0017.jpg
-4,131,Andre Agassi,0.188598,False,dataset\lfw_subset\Andre_Agassi\Andre_Agassi_0005.jpg
-5,368,Atal Bihari Vajpayee,0.184411,False,dataset\lfw_subset\Atal_Bihari_Vajpayee\Atal_Bihari_Vajpayee_0016.jpg
