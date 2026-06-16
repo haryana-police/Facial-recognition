@@ -64,6 +64,17 @@ export default function ResultCard({ result }) {
                 Similarity: {similarityScore?.toFixed(4)}
               </span>
             </div>
+
+            {/* Suspect Photo */}
+            {suspect.suspectPhotoUrl && (
+              <div className="shrink-0">
+                <img
+                  src={suspect.suspectPhotoUrl}
+                  alt="Suspect matched"
+                  className="h-24 w-24 object-cover rounded-xl border border-white/10"
+                />
+              </div>
+            )}
           </div>
 
           {/* Suspect detail rows */}
@@ -75,7 +86,7 @@ export default function ResultCard({ result }) {
 
           {/* Forensic threshold note */}
           <p className="text-xs text-white/25 text-center leading-relaxed">
-            Forensic threshold: similarity must strictly exceed 0.65.
+            Forensic threshold: similarity must strictly exceed 0.60.
             This result cleared the threshold.
           </p>
         </div>
@@ -91,7 +102,7 @@ export default function ResultCard({ result }) {
           </div>
           {similarityScore !== null && similarityScore !== undefined && (
             <span className="score-low rounded-full px-3 py-1 text-xs font-semibold">
-              Best score: {similarityScore.toFixed(4)} (below 0.65 threshold)
+              Best score: {similarityScore.toFixed(4)} (below 0.60 threshold)
             </span>
           )}
         </div>

@@ -587,8 +587,12 @@ async def forensic_extract(
         raise HTTPException(status_code=500, detail=f"Stage 2 (Detection) error: {exc}")
 
     # ── Stage 3: ArcFace Embedding ────────────────────────────────────────────
+    # IMPORTANT: Use the ORIGINAL img_bgr (not enhanced_bgr) for embedding.
+    # Reason: seed_database.py and add_suspect.py both extract embeddings from
+    # original images. Using GFPGAN/CodeFormer enhanced images here would cause
+    # a domain mismatch and produce near-zero similarity scores (~0.12).
     try:
-        embedding = stage3_extract_embedding(enhanced_bgr)
+        embedding = stage3_extract_embedding(img_bgr)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
     except Exception as exc:

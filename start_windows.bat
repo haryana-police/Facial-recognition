@@ -44,17 +44,19 @@ echo.
 echo [2/3] Checking React Frontend...
 cd frontend
 if not exist "node_modules\" (
-    echo - Installing Node modules (this might take a minute)...
+    echo - Installing Node modules, this might take a minute...
     call npm install
 )
 cd ..
 
-:: 3. .NET SETUP
+:: 3. NODE.JS BACKEND SETUP
 echo.
-echo [3/3] Checking .NET Core Backend...
-cd dotnet_backend
-echo - Restoring .NET packages...
-call dotnet restore
+echo [3/3] Checking Node.js Backend...
+cd node_backend
+if not exist "node_modules\" (
+    echo - Installing Node.js backend modules, this might take a minute...
+    call npm install
+)
 cd ..
 
 echo.
@@ -65,13 +67,13 @@ echo.
 
 :: Start services in separate command windows
 echo Starting AI Microservice (Python) on Port 8000...
-start "AI Microservice (Python)" cmd /c "call venv\Scripts\activate && python main.py"
+start "AI Microservice (Python)" cmd /k "call venv\Scripts\activate && python main.py"
 
-echo Starting Primary Backend (.NET) on Port 8080...
-start "Primary Backend (.NET)" cmd /c "cd dotnet_backend && dotnet run"
+echo Starting Primary Backend (Node.js) on Port 8080...
+start "Primary Backend (Node.js)" cmd /k "cd node_backend && node server.js"
 
 echo Starting Frontend UI (React) on Port 3000...
-start "Frontend UI (React)" cmd /c "cd frontend && npm run dev"
+start "Frontend UI (React)" cmd /k "cd frontend && npm run dev"
 
 echo.
 echo ========================================================

@@ -7,6 +7,7 @@ __pycache__/
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
+node_backend/node_modules/
 .DS_Store
 
 # .NET Backend
@@ -21,6 +22,8 @@ my_test_images/
 dataset/
 *.db
 *.sqlite3
+*.db-journal
+suspect_photos/
 
 # Ignore forensic db specifically so it doesn't upload the seeded data unless you want it to
 # forensic_suspects.db (uncomment if you don't want the db uploaded)
