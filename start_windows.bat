@@ -19,14 +19,15 @@ pip install -r requirements.txt -q
 if not exist "weights\" mkdir weights
 
 echo - Checking AI Model Weights (this may take a while if downloading)...
-if not exist "weights\codeformer.pth" (
-    echo   - Downloading CodeFormer...
-    curl -L "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth" -o "weights\codeformer.pth"
-)
-if not exist "weights\GFPGANv1.4.pth" (
-    echo   - Downloading GFPGAN...
-    curl -L "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth" -o "weights\GFPGANv1.4.pth"
-)
+:: [FORENSIC INTEGRITY] - AI Enhancement bypassed. Weights download disabled to save time.
+:: if not exist "weights\codeformer.pth" (
+::     echo   - Downloading CodeFormer...
+::     curl -L "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth" -o "weights\codeformer.pth"
+:: )
+:: if not exist "weights\GFPGANv1.4.pth" (
+::     echo   - Downloading GFPGAN...
+::     curl -L "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth" -o "weights\GFPGANv1.4.pth"
+:: )
 if not exist "weights\yolov8n-face.pt" (
     echo   - Downloading YOLOv8-Face...
     curl -L "https://github.com/akanametov/yolo-face/releases/download/v0.0.0/yolov8n-face.pt" -o "weights\yolov8n-face.pt"
