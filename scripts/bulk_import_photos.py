@@ -52,7 +52,10 @@ def main():
     fail_count = 0
 
     for img_path in image_files:
-        name = img_path.stem  # Filename without extension
+        if img_path.stem.lower() == 'face_front':
+            name = img_path.parent.name # Use folder name (e.g. 13221005010220251801020)
+        else:
+            name = img_path.stem  # Filename without extension
         
         # Resume capability: check if already exists
         existing = conn.execute('SELECT id FROM suspect WHERE name = ?', (name,)).fetchone()

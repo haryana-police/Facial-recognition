@@ -220,61 +220,15 @@ def _rgb_to_bgr(img: np.ndarray) -> np.ndarray:
 
 def stage1_enhance(img_bgr: np.ndarray, fidelity_w: float = DEFAULT_FIDELITY_W) -> np.ndarray:
     """
-    Two-pass restoration pipeline:
-      Pass A — GFPGAN: removes CCTV noise / compression artefacts.
-      Pass B — CodeFormer: sharpens facial structure with high fidelity (w→1
-               keeps original face; w→0 allows more AI hallucination).
-    Falls back gracefully if either model is unavailable.
-
-    Args:
-        img_bgr    : Input BGR image (numpy array).
-        fidelity_w : CodeFormer fidelity weight [0.0–1.0]. Default 0.85.
+    [PAUSED FOR FORENSIC INTEGRITY]
+    Two-pass restoration pipeline (GFPGAN + CodeFormer) is disabled to prevent
+    AI hallucination and strictly preserve original CCTV evidence.
+    
     Returns:
-        Enhanced BGR image (same spatial resolution as input or 2× if upscaled).
+        Exact copy of the input BGR image.
     """
-    enhanced = img_bgr.copy()
-
-    # ── Pass A: GFPGAN noise reduction ──────────────────────────────────────
-    gfpgan_model = _models.get("gfpgan")
-    if gfpgan_model is not None:
-        try:
-            _, _, enhanced_rgb = gfpgan_model.enhance(
-                _bgr_to_rgb(enhanced),
-                has_aligned=False,
-                only_center_face=False,
-                paste_back=True,
-            )
-            enhanced = _rgb_to_bgr(enhanced_rgb)
-            log.info("Stage 1 Pass A (GFPGAN) ✔")
-        except Exception as exc:
-            log.warning("Stage 1 Pass A (GFPGAN) skipped: %s", exc)
-    else:
-        log.info("Stage 1 Pass A skipped (GFPGAN not loaded)")
-
-    # ── Pass B: CodeFormer restoration with fidelity slider ─────────────────
-    cf_model = _models.get("codeformer")
-    if cf_model is not None:
-        try:
-            from basicsr.utils import img2tensor, tensor2img  # type: ignore
-            from torchvision.transforms.functional import normalize  # type: ignore
-
-            # Prepare tensor
-            face_t = img2tensor(enhanced / 255.0, bgr2rgb=True, float32=True)
-            normalize(face_t, [0.5, 0.5, 0.5], [0.5, 0.5, 0.5], inplace=True)
-            face_t = face_t.unsqueeze(0).to(DEVICE)
-
-            with torch.no_grad():
-                output = cf_model(face_t, w=fidelity_w, adain=True)[0]
-
-            restored = tensor2img(output, rgb2bgr=True, min_max=(-1, 1))
-            enhanced = restored.astype("uint8")
-            log.info("Stage 1 Pass B (CodeFormer w=%.2f) ✔", fidelity_w)
-        except Exception as exc:
-            log.warning("Stage 1 Pass B (CodeFormer) skipped: %s", exc)
-    else:
-        log.info("Stage 1 Pass B skipped (CodeFormer not loaded)")
-
-    return enhanced
+    log.info("Stage 1 Enhancement bypassed (Forensic Integrity Mode) ✔")
+    return img_bgr.copy()
 
 
 def save_enhanced_image(img_bgr: np.ndarray) -> str:
@@ -496,8 +450,10 @@ async def load_models() -> None:
     log.info("  Forensic API — Loading models at startup")
     log.info("═══════════════════════════════════════════")
 
-    _models["gfpgan"]     = _load_gfpgan()
-    _models["codeformer"] = _load_codeformer()
+    # PAUSED for forensic integrity - prevents AI hallucinations
+    _models["gfpgan"]     = None # _load_gfpgan()
+    _models["codeformer"] = None # _load_codeformer()
+    
     _models["yolo_face"]  = _load_yolo_face()
     _models["insightface"] = _load_insightface()
 

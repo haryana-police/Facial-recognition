@@ -123,46 +123,40 @@ app.post('/api/cases/analyze-and-match', upload.single('image'), async (req, res
       : [];
     console.log(`[DB] Loaded ${suspects.length} suspects for comparison`);
 
-    // 4. Find best cosine similarity match
-    let bestScore  = 0;
-    let bestSuspect = null;
-
-    for (const suspect of suspects) {
+    // 4. Calculate score for all suspects
+    const scoredSuspects = suspects.map(suspect => {
       const suspectVec = parseEmbedding(suspect.embedding_vector);
       const score      = cosineSimilarity(embedding, suspectVec);
+      return { ...suspect, score };
+    });
 
-      if (score > bestScore) {
-        bestScore   = score;
-        bestSuspect = suspect;
+    // Sort descending by score and pick top 5
+    scoredSuspects.sort((a, b) => b.score - a.score);
+    const top5 = scoredSuspects.slice(0, 5);
+
+    // 5. Map to match objects
+    const topMatches = top5.map(s => {
+      let suspectPhotoUrl = null;
+      if (s.image_path) {
+        const filename = path.basename(s.image_path);
+        suspectPhotoUrl = `http://localhost:${PORT}/suspect-photos/${filename}`;
       }
-    }
+      return {
+        id: s.id,
+        name: s.name,
+        similarityScore: s.score,
+        suspectPhotoUrl: suspectPhotoUrl,
+        details: 'Suspect identified via AI embedding matching.',
+      };
+    });
 
-    // 5. Decide match
-    const isMatch = bestScore > MATCH_THRESHOLD;
-
-    // Build suspect photo URL if image_path is available
-    let suspectPhotoUrl = null;
-    if (isMatch && bestSuspect && bestSuspect.image_path) {
-      // image_path is like: suspect_photos/531_vijay.jpeg
-      const filename = path.basename(bestSuspect.image_path);
-      suspectPhotoUrl = `http://localhost:${PORT}/suspect-photos/${filename}`;
-    }
-
-    const suspectObj = isMatch && bestSuspect
-      ? {
-          id:             bestSuspect.id,
-          name:           bestSuspect.name,
-          suspectPhotoUrl: suspectPhotoUrl,
-          details:        'Suspect identified via AI embedding matching.',
-        }
-      : null;
-
-    console.log(`[API] Result — match: ${isMatch}, score: ${bestScore.toFixed(4)}, photo: ${suspectPhotoUrl || 'N/A'}`);
+    const isMatch = topMatches.length > 0 && topMatches[0].similarityScore > MATCH_THRESHOLD;
 
     return res.json({
       matchFound:       isMatch,
-      suspect:          suspectObj,
-      similarityScore:  bestScore,
+      topMatches:       topMatches, // New field for top 5 matches
+      suspect:          topMatches[0] || null, // Keep for backward compatibility
+      similarityScore:  topMatches.length > 0 ? topMatches[0].similarityScore : null,
       enhancedImageUrl: enhancedImagePath,
       message:          isMatch ? 'Identity match found.' : 'No identity match found.',
     });

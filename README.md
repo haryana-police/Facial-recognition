@@ -6,17 +6,17 @@ A production-ready, three-tier forensic application implementing a strict **4-St
 
 ## Architecture Overview
 
-The system has been recently migrated to a modern **.NET Core** backend, replacing the legacy Java Spring Boot architecture, providing better performance and native Windows support.
+The system uses a modern **Node.js** backend, replacing legacy Java/ASP.NET architectures, to provide excellent asynchronous performance and cross-platform support.
 
 ### 1. Frontend: React UI (Vite) - `Port 3000`
-A responsive React interface for investigators to upload CCTV images, adjust the AI fidelity slider, and view match results with a clear visual confidence score.
+A responsive React interface for investigators to upload CCTV images, adjust the AI fidelity slider, and view top 5 match results with clear visual confidence scores.
 
-### 2. Primary Backend: .NET Core Web API - `Port 8080`
-The central orchestrator written in C# (ASP.NET Core). 
-- Connects to the local SQLite Database (`forensic_suspects.db`) using Entity Framework Core.
+### 2. Primary Backend: Node.js (Express) - `Port 8080`
+The central orchestrator written in JavaScript. 
+- Connects to the local SQLite Database (`forensic_suspects.db`) in memory via `sql.js`.
 - Parses multipart form requests from the frontend.
 - Proxies images to the AI microservice.
-- Performs blazing-fast **Cosine Similarity** vector matching across the database to find suspect identities.
+- Performs blazing-fast **Cosine Similarity** vector matching across the database to find the top 5 suspect identities.
 
 ### 3. AI Microservice: Python FastAPI - `Port 8000`
 A dedicated GPU-accelerated (or CPU fallback) microservice for AI inference.
@@ -25,9 +25,8 @@ CCTV Frame
     │
     ▼
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 1 — Enhancement & Restoration                    │
-│  Pass A: GFPGAN  → removes CCTV noise / compression     │
-│  Pass B: CodeFormer (w=0.85) → sharpens, preserves face │
+│  STAGE 1 — Enhancement & Restoration (PAUSED)           │
+│  [Bypassed to strictly preserve forensic integrity]     │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
@@ -45,8 +44,8 @@ CCTV Frame
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 4 — .NET Cosine Similarity Matching              │
-│  Threshold: similarity must STRICTLY EXCEED 0.65        │
+│  STAGE 4 — Node.js Cosine Similarity Matching           │
+│  Threshold: similarity must STRICTLY EXCEED 0.60        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -57,7 +56,7 @@ CCTV Frame
 ```
 Facial-recognition/
 ├── frontend/                ← React UI (Vite)
-├── dotnet_backend/          ← .NET 8 Web API (Database & Orchestration)
+├── node_backend/            ← Node.js Express API (Database & Orchestration)
 ├── main.py                  ← FastAPI application (AI Pipeline)
 ├── forensic_suspects.db     ← SQLite Database containing suspects & embeddings
 ├── scripts/                 ← Utility scripts (e.g., add_suspect.py)
@@ -85,7 +84,7 @@ Because GitHub does not allow uploading files larger than 100MB (without Git LFS
 ## 🚀 1-Click Startup (Windows Only)
 
 For Windows users, a fully automated batch script is provided. It automatically:
-1. Checks and installs all dependencies (Python, Node modules, .NET packages).
+1. Checks and installs all dependencies (Python, Node modules).
 2. **Automatically downloads all heavy AI Model weights** directly from GitHub if they are missing.
 3. Opens all three servers in separate windows.
 
@@ -106,15 +105,15 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 python main.py
 ```
-> **Note:** The server loads InsightFace, YOLOv8, GFPGAN, and CodeFormer into memory at startup.
+> **Note:** The server loads InsightFace and YOLOv8 into memory at startup. (GFPGAN and CodeFormer loading has been disabled for forensic integrity).
 
-### 2. Start the .NET Backend (Port 8080)
-Ensure the **.NET 8.0 SDK** is installed on your system.
+### 2. Start the Node.js Backend (Port 8080)
+Ensure **Node.js** is installed on your system.
 ```bash
-# In the dotnet_backend/ directory
-cd dotnet_backend
-dotnet restore
-dotnet run
+# In the node_backend/ directory
+cd node_backend
+npm install
+node server.js
 ```
 > **Note:** This automatically connects to `forensic_suspects.db` in the root folder.
 
@@ -144,6 +143,18 @@ Use the provided Python script to embed a new suspect directly into the database
 python scripts/add_suspect.py "John Doe" "path/to/photo.jpg"
 ```
 
+### Bulk Importing Suspects:
+To import a large dataset of folders (e.g., from `D:\images`), use the bulk import script. This script automatically handles duplicates, uses parent directory names for identity, and can be safely paused/resumed:
+```bash
+python scripts/bulk_import_photos.py D:\images
+```
+
+### Reloading the Database in Memory:
+The Node.js backend loads the entire SQLite database into memory via `sql.js` for blazing-fast vector matching. If you add new suspects via the Python scripts while the Node server is running, you **must** hit the reload endpoint to refresh its memory without restarting the server:
+```bash
+curl -X POST http://localhost:8080/api/reload-db
+```
+
 ---
 
 ## Active AI Models Used
@@ -162,8 +173,8 @@ This system uses specific state-of-the-art models for different phases of the pi
 
 ### 3. Final Result / Matching (Identity Confirmation)
 - **Algorithm:** **Cosine Similarity (Dot Product)**
-  - *Where:* Handled directly inside the **.NET Core (C#)** Backend.
-  - *Why:* Computes the angle difference between the uploaded image's 512-D vector and all vectors in the SQLite database. A match is only verified if the similarity strictly exceeds the **0.65 (65%)** threshold, ensuring legal and forensic-grade accuracy while preventing false positives.
+  - *Where:* Handled directly inside the **Node.js** Backend.
+  - *Why:* Computes the angle difference between the uploaded image's 512-D vector and all vectors in the SQLite database. A match is only verified if the similarity strictly exceeds the **0.60 (60%)** threshold, returning the top 5 matches to ensure forensic-grade accuracy while preventing false positives.
 
 ---
 
@@ -171,9 +182,10 @@ This system uses specific state-of-the-art models for different phases of the pi
 
 | Concern | Decision |
 |---------|----------|
-| **Architecture Shift** | Migrated from Java Spring Boot to **.NET Core 8** for faster memory management and native Windows OS compatibility. |
+| **Architecture Shift** | Migrated from Java/.NET to **Node.js (Express)** for faster memory management and a unified JavaScript ecosystem. |
 | **TensorFlow Memory Fix** | Removed RetinaFace (TensorFlow) dependency in Python; exclusively using `InsightFace` native detection to prevent ONNX buffer allocation OOM errors. |
 | **Fidelity slider default** | `w=0.85` → AI sharpens edges but cannot hallucinate facial features. |
 | **Multiple faces in crop** | Largest bounding box area is selected for embedding. |
 | **Global model loading** | All models load once at `@app.on_event("startup")` — no per-request overhead. |
-| **Match threshold** | `> 0.65` (strict) chosen for forensic-grade false-positive control. |
+| **Match threshold** | `> 0.60` (strict) chosen for forensic-grade false-positive control, returning Top 5 results. |
+| **Forensic Integrity** | GFPGAN and CodeFormer enhancement stages have been explicitly bypassed to strictly prevent any AI hallucination or tampering with the original CCTV evidence. |
