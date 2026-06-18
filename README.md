@@ -1,6 +1,6 @@
 # Forensic Facial Recognition System
 
-A production-ready, three-tier forensic application implementing a strict **4-Stage forensic pipeline** for analyzing pre-recorded CCTV footage.
+A production-ready, three-tier forensic application implementing a strict **4-Stage forensic pipeline** for analyzing pre-recorded CCTV footage and a **metadata-aware search engine** for granular suspect profiling.
 
 ---
 
@@ -9,13 +9,17 @@ A production-ready, three-tier forensic application implementing a strict **4-St
 The system uses a modern **Node.js** backend, replacing legacy Java/ASP.NET architectures, to provide excellent asynchronous performance and cross-platform support.
 
 ### 1. Frontend: React UI (Vite) - `Port 3000`
-A responsive React interface for investigators to upload CCTV images, adjust the AI fidelity slider, and view top 5 match results with clear visual confidence scores.
+A responsive React interface for investigators to:
+- Use the **Filter Panel** to set pre-search metadata constraints (e.g., age, gender, height).
+- Upload CCTV images and adjust the AI fidelity slider.
+- View top 5 match results with clear visual confidence scores and full metadata profiles.
 
 ### 2. Primary Backend: Node.js (Express) - `Port 8080`
 The central orchestrator written in JavaScript. 
 - Connects to the local SQLite Database (`forensic_suspects.db`) in memory via `sql.js`.
 - Parses multipart form requests from the frontend.
 - Proxies images to the AI microservice.
+- **Pre-filters** suspects based on granular metadata attributes (e.g., Gender, Age ±5, Height ±5) to optimize search.
 - Performs blazing-fast **Cosine Similarity** vector matching across the database to find the top 5 suspect identities.
 
 ### 3. AI Microservice: Python FastAPI - `Port 8000`
@@ -86,7 +90,8 @@ Because GitHub does not allow uploading files larger than 100MB (without Git LFS
 For Windows users, a fully automated batch script is provided. It automatically:
 1. Checks and installs all dependencies (Python, Node modules).
 2. **Automatically downloads all heavy AI Model weights** directly from GitHub if they are missing.
-3. Opens all three servers in separate windows.
+3. Runs schema migrations (`migrate_add_metadata.py`) to safely upgrade existing databases to the new 15+ field metadata structure.
+4. Opens all three servers in separate windows.
 
 **Just double-click:** `start_windows.bat`
 
@@ -131,11 +136,12 @@ npm run dev
 
 ## Database Management
 
-The SQLite database (`forensic_suspects.db`) table `suspect` has the following schema:
+The SQLite database (`forensic_suspects.db`) table `suspect` has been augmented for granular suspect profiling with the following schema:
 - `id` (INTEGER PRIMARY KEY)
 - `name` (TEXT)
 - `image_path` (TEXT)
 - `embedding_vector` (TEXT - comma separated 512 floats)
+- **15+ Metadata fields**: `dd_no`, `found_date`, `found_district`, `ps_name`, `found_loc`, `gender`, `age_min`, `age_max`, `height_cm`, `build`, `skin_tone`, `hair_color`, `beard`, `visible_marks`, `clothing_description`, `notes`
 
 ### Adding a new suspect manually:
 Use the provided Python script to embed a new suspect directly into the database:
@@ -143,10 +149,14 @@ Use the provided Python script to embed a new suspect directly into the database
 python scripts/add_suspect.py "John Doe" "path/to/photo.jpg"
 ```
 
-### Bulk Importing Suspects:
-To import a large dataset of folders (e.g., from `D:\images`), use the bulk import script. This script automatically handles duplicates, uses parent directory names for identity, and can be safely paused/resumed:
+### Metadata & Image Bulk Ingestion Pipeline:
+To import a large dataset of nested folders and synchronize image data with metadata from Excel/CSV source files, use the robust bulk import scripts:
 ```bash
-python scripts/bulk_import_photos.py D:\images
+# Import photos and metadata from an Excel master file
+python scripts/import_from_excel.py D:\images path\to\master_data.xlsx
+
+# Or import using a CSV file
+python scripts/bulk_import_with_csv.py D:\images path\to\metadata.csv
 ```
 
 ### Reloading the Database in Memory:
@@ -172,9 +182,10 @@ This system uses specific state-of-the-art models for different phases of the pi
   - *Why:* Once the face is detected, this model maps the facial landmarks and geometry into a strict **512-Dimensional Vector**. It is considered one of the most accurate mathematical representations of a human face available today.
 
 ### 3. Final Result / Matching (Identity Confirmation)
+- **Attribute Pre-filtering:** The system first pre-filters the suspect database by metadata constraints (Gender, Age ±5, Height ±5) to optimize search accuracy and speed.
 - **Algorithm:** **Cosine Similarity (Dot Product)**
   - *Where:* Handled directly inside the **Node.js** Backend.
-  - *Why:* Computes the angle difference between the uploaded image's 512-D vector and all vectors in the SQLite database. A match is only verified if the similarity strictly exceeds the **0.60 (60%)** threshold, returning the top 5 matches to ensure forensic-grade accuracy while preventing false positives.
+  - *Why:* Computes the angle difference between the uploaded image's 512-D vector and all pre-filtered vectors in the SQLite database. A match is only verified if the similarity strictly exceeds the **0.60 (60%)** threshold, returning the top 5 matches to ensure forensic-grade accuracy while preventing false positives.
 
 ---
 

@@ -30,3 +30,4 @@ suspect_photos/
 
 *.log
 test_results.json
+import_log.txt

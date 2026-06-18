@@ -2,38 +2,66 @@ import axios from 'axios'
 
 /**
  * POST /api/cases/analyze-and-match
- * Sends the CCTV image + fidelity_w to Spring Boot.
- * Spring Boot orchestrates the AI microservice call + DB matching.
+ * Sends CCTV image + optional pre-filters to Node.js backend.
  *
  * @param {File}   imageFile  - Raw image file from the user
  * @param {number} fidelityW  - CodeFormer fidelity weight [0.0 – 1.0]
+ * @param {Object} filters    - { gender, age, height_cm } (all optional)
  * @returns {Promise<AnalysisResult>}
  */
-export async function analyzeAndMatch(imageFile, fidelityW = 0.85) {
+export async function analyzeAndMatch(imageFile, fidelityW = 0.85, filters = {}) {
   const formData = new FormData()
   formData.append('image', imageFile)
   formData.append('fidelity_w', fidelityW.toString())
 
+  if (filters.gender)    formData.append('gender',    filters.gender)
+  if (filters.age)       formData.append('age',       filters.age.toString())
+  if (filters.height_cm) formData.append('height_cm', filters.height_cm.toString())
+
   const response = await axios.post('/api/cases/analyze-and-match', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 120_000, // 2 min — AI pipeline can be slow on first run
+    timeout: 120_000,
   })
 
   return response.data
 }
 
 /**
- * @typedef {Object} AnalysisResult
- * @property {boolean}      matchFound
- * @property {number}       similarityScore   - 0.0 – 1.0
- * @property {SuspectDto|null} suspect
- * @property {string}       enhancedImageUrl  - URL served by Spring Boot
- * @property {string}       message
+ * POST /api/suspects/upload-with-csv
+ * Upload a single suspect image + CSV file with metadata.
+ *
+ * @param {File} imageFile
+ * @param {File} csvFile
+ * @returns {Promise<Object>}
  */
+export async function uploadSuspectWithCsv(imageFile, csvFile) {
+  const formData = new FormData()
+  formData.append('image', imageFile)
+  formData.append('csv', csvFile)
+
+  const response = await axios.post('/api/suspects/upload-with-csv', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 180_000,
+  })
+
+  return response.data
+}
 
 /**
- * @typedef {Object} SuspectDto
- * @property {number} id
- * @property {string} name
- * @property {string} details
+ * POST /api/suspects/bulk-upload-csv
+ * Upload a CSV file with metadata for many suspects.
+ *
+ * @param {File} csvFile
+ * @returns {Promise<Object>}
  */
+export async function bulkUploadCsv(csvFile) {
+  const formData = new FormData()
+  formData.append('csv', csvFile)
+
+  const response = await axios.post('/api/suspects/bulk-upload-csv', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60_000,
+  })
+
+  return response.data
+}

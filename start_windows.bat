@@ -8,7 +8,7 @@ echo ========================================================
 echo.
 
 :: 1. PYTHON SETUP
-echo [1/3] Checking Python AI Microservice...
+echo [1/4] Checking Python AI Microservice...
 if not exist "venv\" (
     echo - Creating Python Virtual Environment...
     python -m venv venv
@@ -18,8 +18,8 @@ call venv\Scripts\activate
 pip install -r requirements.txt -q
 if not exist "weights\" mkdir weights
 
-echo - Checking AI Model Weights (this may take a while if downloading)...
-:: [FORENSIC INTEGRITY] - AI Enhancement bypassed. Weights download disabled to save time.
+echo - Checking AI Model Weights...
+:: [FORENSIC INTEGRITY] - AI Enhancement bypassed. Weights download disabled.
 :: if not exist "weights\codeformer.pth" (
 ::     echo   - Downloading CodeFormer...
 ::     curl -L "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth" -o "weights\codeformer.pth"
@@ -34,15 +34,21 @@ if not exist "weights\yolov8n-face.pt" (
 )
 echo - All weights are present!
 
-echo - Checking Database...
+:: ─── DATABASE CHECK + MIGRATION ───────────────────────────────────────────────
+echo.
+echo [2/4] Checking Database...
 if not exist "forensic_suspects.db" (
-    echo   - Database not found. Seeding initial database...
+    echo - Database not found. Seeding initial database...
     python scripts\seed_database.py
 )
 
+echo - Running metadata schema migration (safe - skips existing columns)...
+python scripts\migrate_add_metadata.py
+echo - Database ready!
+
 :: 2. FRONTEND SETUP
 echo.
-echo [2/3] Checking React Frontend...
+echo [3/4] Checking React Frontend...
 cd frontend
 if not exist "node_modules\" (
     echo - Installing Node modules, this might take a minute...
@@ -52,7 +58,7 @@ cd ..
 
 :: 3. NODE.JS BACKEND SETUP
 echo.
-echo [3/3] Checking Node.js Backend...
+echo [4/4] Checking Node.js Backend...
 cd node_backend
 if not exist "node_modules\" (
     echo - Installing Node.js backend modules, this might take a minute...
@@ -81,7 +87,9 @@ echo ========================================================
 echo   System is now running in the background windows!
 echo   Please wait 10-15 seconds for the AI models to load.
 echo.
-echo   Dashboard URL: http://localhost:3000
+echo   Dashboard URL : http://localhost:3000
+echo   Backend API   : http://localhost:8080/api/health
+echo   AI Service    : http://localhost:8000/health
 echo ========================================================
 echo.
 pause
