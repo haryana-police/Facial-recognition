@@ -99,8 +99,8 @@ export default function App() {
                     : 'text-white/40 hover:text-white/70'}`}
               >
                 <Settings size={13} />
-                <span className="hidden xs:inline">Admin</span>
-                <span className="xs:hidden">Upload</span>
+                <span className="hidden sm:inline">Admin</span>
+                <span className="sm:hidden">Upload</span>
               </button>
             </div>
 
