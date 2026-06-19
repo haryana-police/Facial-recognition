@@ -111,7 +111,7 @@ function SingleUpload() {
             <ImagePlus size={12} className="text-forensic-400" /> Suspect Photo
           </p>
           <div
-            className="drop-zone flex flex-col items-center justify-center min-h-[160px] p-4 text-center cursor-pointer"
+            className="drop-zone flex flex-col items-center justify-center min-h-[140px] sm:min-h-[160px] p-4 text-center cursor-pointer active:opacity-70 transition-opacity"
             onClick={() => imgRef.current?.click()}
           >
             <input ref={imgRef} type="file" accept="image/*" className="hidden"
@@ -143,7 +143,7 @@ function SingleUpload() {
             <FileSpreadsheet size={12} className="text-forensic-400" /> CSV File (1 row)
           </p>
           <div
-            className="drop-zone flex flex-col items-center justify-center min-h-[160px] p-4 text-center cursor-pointer"
+            className="drop-zone flex flex-col items-center justify-center min-h-[140px] sm:min-h-[160px] p-4 text-center cursor-pointer active:opacity-70 transition-opacity"
             onClick={() => csvRef.current?.click()}
           >
             <input ref={csvRef} type="file" accept=".csv" className="hidden"
@@ -177,7 +177,7 @@ function SingleUpload() {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="btn-primary flex-1 flex items-center justify-center gap-3 py-3.5 text-sm"
+          className="btn-primary flex-1 flex items-center justify-center gap-3 py-4 text-sm active:scale-95 transition-transform"
         >
           {status === 'LOADING' ? (
             <><Loader2 size={18} className="animate-spin" /><span>Processing…</span></>

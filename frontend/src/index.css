@@ -5,13 +5,21 @@
 @layer base {
   * {
     box-sizing: border-box;
+    /* Prevent text size adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
   }
   html {
     scroll-behavior: smooth;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
   }
   body {
     font-family: 'Inter', system-ui, sans-serif;
     background-color: #040812;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+    /* Better tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -36,6 +44,7 @@
   .drop-zone {
     @apply border-2 border-dashed border-white/20 rounded-2xl
            hover:border-forensic-500/60 hover:bg-forensic-500/5
+           active:border-forensic-500/60 active:bg-forensic-500/5
            transition-all duration-300 cursor-pointer;
   }
 
@@ -49,12 +58,12 @@
   .score-low    { @apply bg-red-500/20 text-red-400 border border-red-500/30; }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar        { width: 6px; }
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar        { width: 4px; }
 ::-webkit-scrollbar-track  { background: transparent; }
 ::-webkit-scrollbar-thumb  { background: rgba(79,110,247,0.4); border-radius: 3px; }
 
-/* Range input styling */
+/* ── Range input styling — larger thumb on mobile for easy touch ── */
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
@@ -62,15 +71,49 @@ input[type='range'] {
   border-radius: 9999px;
   background: rgba(255,255,255,0.1);
   outline: none;
+  width: 100%;
 }
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 24px;        /* bigger on mobile */
+  height: 24px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4f6ef7, #2d43c4);
   cursor: pointer;
   box-shadow: 0 0 8px rgba(79,110,247,0.5);
   border: 2px solid rgba(255,255,255,0.2);
 }
+@media (min-width: 640px) {
+  input[type='range']::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ── Safe area padding for iPhone notch / bottom bar ── */
+.safe-area-pb {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* ── Number inputs: hide spinner arrows on mobile ── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* ── Animations ── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-slide-up { animation: slide-up 0.3s ease-out both; }
+.animate-fade-in  { animation: fade-in  0.25s ease-out both; }

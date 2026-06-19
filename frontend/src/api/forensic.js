@@ -14,9 +14,11 @@ export async function analyzeAndMatch(imageFile, fidelityW = 0.85, filters = {})
   formData.append('image', imageFile)
   formData.append('fidelity_w', fidelityW.toString())
 
-  if (filters.gender)    formData.append('gender',    filters.gender)
-  if (filters.age)       formData.append('age',       filters.age.toString())
-  if (filters.height_cm) formData.append('height_cm', filters.height_cm.toString())
+  if (filters.gender)      formData.append('gender',       filters.gender)
+  if (filters.age_from)    formData.append('age_from',     filters.age_from.toString())
+  if (filters.age_to)      formData.append('age_to',       filters.age_to.toString())
+  if (filters.height_from) formData.append('height_from',  filters.height_from.toString())
+  if (filters.height_to)   formData.append('height_to',    filters.height_to.toString())
 
   const response = await axios.post('/api/cases/analyze-and-match', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

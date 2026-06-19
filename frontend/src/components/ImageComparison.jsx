@@ -23,7 +23,7 @@ export default function ImageComparison({ originalUrl, enhancedUrl }) {
           <div className="overflow-hidden rounded-xl bg-black/40 border border-white/5">
             <img
               src={originalUrl}
-              alt="Original CCTV frame"
+              alt="Original camera photo"
               className="w-full h-56 object-contain"
             />
           </div>

@@ -3,13 +3,14 @@ import { UploadCloud, Camera, Image } from 'lucide-react'
 
 /**
  * UploadZone
- * Supports:
- *  - Drag & drop (desktop)
- *  - Click to open file explorer (desktop/mobile)
- *  - Camera capture (mobile — capture="environment")
+ * Mobile-first:
+ *  - Large touch-friendly tap area
+ *  - Separate "Gallery" and "Camera" buttons on mobile
+ *  - Drag & drop on desktop
  */
 export default function UploadZone({ onFileSelected, previewUrl }) {
-  const inputRef = useRef(null)
+  const fileRef   = useRef(null)  // gallery / file picker
+  const cameraRef = useRef(null)  // direct camera
   const [dragging, setDragging] = useState(false)
 
   const handleFile = (file) => {
@@ -17,8 +18,8 @@ export default function UploadZone({ onFileSelected, previewUrl }) {
     onFileSelected(file)
   }
 
-  /* Drag handlers */
-  const onDragOver = (e) => { e.preventDefault(); setDragging(true) }
+  /* Drag handlers (desktop) */
+  const onDragOver  = (e) => { e.preventDefault(); setDragging(true) }
   const onDragLeave = ()  => setDragging(false)
   const onDrop = (e) => {
     e.preventDefault()
@@ -27,65 +28,97 @@ export default function UploadZone({ onFileSelected, previewUrl }) {
   }
 
   return (
-    <div
-      className={`drop-zone relative flex flex-col items-center justify-center
-                  min-h-[220px] p-6 text-center select-none
-                  ${dragging ? 'active' : ''}`}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      onClick={() => inputRef.current?.click()}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-      aria-label="Upload CCTV image"
-    >
-      {/* Hidden file input — supports both file picker & camera on mobile */}
+    <div className="space-y-3">
+      {/* Hidden inputs */}
       <input
-        ref={inputRef}
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+        id="gallery-photo-input"
+      />
+      <input
+        ref={cameraRef}
         type="file"
         accept="image/*"
         capture="environment"
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
-        id="cctv-file-input"
+        id="camera-photo-input"
       />
 
-      {previewUrl ? (
-        /* Preview thumbnail */
-        <div className="relative w-full">
-          <img
-            src={previewUrl}
-            alt="Selected CCTV frame"
-            className="mx-auto max-h-48 rounded-xl object-contain shadow-lg"
-          />
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-white/50">
-            <Image size={14} />
-            <span>Tap to change image</span>
+      {/* Drop Zone / Preview */}
+      <div
+        className={`drop-zone relative flex flex-col items-center justify-center
+                    min-h-[180px] sm:min-h-[220px] p-4 sm:p-6 text-center select-none
+                    ${dragging ? 'active' : ''}`}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() => fileRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}
+        aria-label="Upload camera photo"
+      >
+        {previewUrl ? (
+          /* Preview thumbnail */
+          <div className="relative w-full">
+            <img
+              src={previewUrl}
+              alt="Selected camera photo"
+              className="mx-auto max-h-44 sm:max-h-48 rounded-xl object-contain shadow-lg"
+            />
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs text-white/50">
+              <Image size={14} />
+              <span>Tap to change image</span>
+            </div>
           </div>
-        </div>
-      ) : (
-        /* Empty state */
-        <div className="flex flex-col items-center gap-4">
-          <div className="rounded-full bg-forensic-500/10 p-5 ring-1 ring-forensic-500/20">
-            <UploadCloud size={40} className="text-forensic-500" />
+        ) : (
+          /* Empty state */
+          <div className="flex flex-col items-center gap-3 sm:gap-4">
+            <div className="rounded-full bg-forensic-500/10 p-4 sm:p-5 ring-1 ring-forensic-500/20">
+              <UploadCloud size={36} className="text-forensic-500" />
+            </div>
+            <div>
+              <p className="text-sm sm:text-base font-semibold text-white/90">
+                Drop photo here
+              </p>
+              <p className="mt-1 text-xs sm:text-sm text-white/40">
+                or use the buttons below
+              </p>
+            </div>
+            <p className="text-xs text-white/30">JPEG · PNG · WebP</p>
           </div>
-          <div>
-            <p className="text-base font-semibold text-white/90">
-              Drop CCTV frame here
-            </p>
-            <p className="mt-1 text-sm text-white/40">
-              or tap to browse / use camera
-            </p>
-          </div>
-          {/* Mobile camera hint */}
-          <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs text-white/50">
-            <Camera size={13} />
-            <span>Mobile: camera access supported</span>
-          </div>
-          <p className="text-xs text-white/30">JPEG · PNG · WebP</p>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Mobile action buttons — large touch targets */}
+      <div className="grid grid-cols-2 gap-3 sm:hidden">
+        <button
+          type="button"
+          onClick={() => cameraRef.current?.click()}
+          className="flex items-center justify-center gap-2 rounded-xl
+                     bg-forensic-500/20 border border-forensic-500/30
+                     py-3.5 text-sm font-semibold text-forensic-300
+                     active:scale-95 transition-transform"
+        >
+          <Camera size={18} />
+          Camera
+        </button>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center justify-center gap-2 rounded-xl
+                     bg-white/5 border border-white/10
+                     py-3.5 text-sm font-semibold text-white/60
+                     active:scale-95 transition-transform"
+        >
+          <Image size={18} />
+          Gallery
+        </button>
+      </div>
     </div>
   )
 }

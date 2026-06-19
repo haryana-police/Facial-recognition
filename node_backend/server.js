@@ -17,7 +17,7 @@ const PHOTOS_DIR      = path.join(__dirname, '..', 'suspect_photos');
 // ─── App Setup ─────────────────────────────────────────────────────────────────
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:5173'] }));
 app.use(express.json());
 
 // Serve suspect photos as static files
@@ -308,10 +308,12 @@ app.post('/api/cases/analyze-and-match', upload.single('image'), async (req, res
     return res.status(400).json({ error: 'No image file provided.' });
   }
 
-  const fidelityW  = parseFloat(req.body.fidelity_w  ?? '0.85');
+  const fidelityW    = parseFloat(req.body.fidelity_w  ?? '0.85');
   const filterGender = (req.body.gender || '').trim();
-  const filterAge    = req.body.age    ? parseInt(req.body.age)    : null;
-  const filterHeight = req.body.height_cm ? parseFloat(req.body.height_cm) : null;
+  const filterAgeFrom    = req.body.age_from    ? parseInt(req.body.age_from)      : null;
+  const filterAgeTo      = req.body.age_to      ? parseInt(req.body.age_to)        : null;
+  const filterHeightFrom = req.body.height_from ? parseFloat(req.body.height_from) : null;
+  const filterHeightTo   = req.body.height_to   ? parseFloat(req.body.height_to)   : null;
 
   try {
     // 1. Forward image to Python AI microservice
@@ -341,20 +343,21 @@ app.post('/api/cases/analyze-and-match', upload.single('image'), async (req, res
       params.push(filterGender);
     }
 
-    if (filterAge !== null && filterAge > 0) {
-      const ageMin = filterAge - 5;
-      const ageMax = filterAge + 5;
-      // Include suspects where age range overlaps (or age is 0/unknown — skip those if filter active)
+    if (filterAgeFrom !== null || filterAgeTo !== null) {
+      const ageMin = filterAgeFrom ?? 0;
+      const ageMax = filterAgeTo   ?? 999;
+      // Include suspects whose age range overlaps with the selected range
+      // Also include suspects with age=0 (unknown) always
       whereClauses.push(`(
-        (age_min > 0 AND age_max > 0 AND age_min <= ? AND age_max >= ?)
-        OR (age_min = 0 AND age_max = 0)
+        (age_min = 0 AND age_max = 0)
+        OR (age_min <= ? AND age_max >= ?)
       )`);
       params.push(ageMax, ageMin);
     }
 
-    if (filterHeight !== null && filterHeight > 0) {
-      const hMin = filterHeight - 5;
-      const hMax = filterHeight + 5;
+    if (filterHeightFrom !== null || filterHeightTo !== null) {
+      const hMin = filterHeightFrom ?? 0;
+      const hMax = filterHeightTo   ?? 9999;
       whereClauses.push(`(height_cm = 0 OR (height_cm >= ? AND height_cm <= ?))`);
       params.push(hMin, hMax);
     }
@@ -396,7 +399,7 @@ app.post('/api/cases/analyze-and-match', upload.single('image'), async (req, res
         }))
       : [];
 
-    console.log(`[DB] Filtered suspects: ${suspects.length} (gender="${filterGender}", age=${filterAge}, height=${filterHeight})`);
+    console.log(`[DB] Filtered suspects: ${suspects.length} (gender="${filterGender}", age=${filterAgeFrom}-${filterAgeTo}, height=${filterHeightFrom}-${filterHeightTo})`);
 
     // 3. Face matching on filtered set
     const scoredSuspects = suspects.map(suspect => {
