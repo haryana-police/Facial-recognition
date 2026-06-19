@@ -107,8 +107,9 @@ Because GitHub does not allow uploading files larger than 100MB (without Git LFS
 For Windows users, a fully automated batch script is provided. It automatically:
 1. Checks and installs all dependencies (Python, Node modules).
 2. **Automatically downloads all heavy AI Model weights** directly from GitHub if they are missing.
-3. Runs schema migrations (`migrate_add_metadata.py`) to safely upgrade existing databases to the new 15+ field metadata structure.
-4. Opens all three servers in separate windows.
+3. **Bring Your Own Data (BYOD):** If a database is missing, it seamlessly initializes an **empty database** (`forensic_suspects.db`) so you can start uploading your own CSVs/photos immediately.
+4. Runs schema migrations (`migrate_add_metadata.py`) to safely apply the new 15+ field metadata structure.
+5. Opens all three servers in separate windows.
 
 **Just double-click:** `start_windows.bat`
 
@@ -180,8 +181,11 @@ The SQLite database (`forensic_suspects.db`) table `suspect` has been augmented 
 - `embedding_vector` (TEXT — comma-separated 512 floats)
 - **15+ Metadata fields**: `dd_no`, `found_date`, `found_district`, `ps_name`, `found_loc`, `gender`, `age_min`, `age_max`, `height_cm`, `build`, `skin_tone`, `hair_color`, `beard`, `visible_marks`, `clothing_description`, `notes`
 
+### Starting with an Empty Database (Bring Your Own Data)
+If you clone this repository and do not have the original `forensic_suspects.db`, running `start_windows.bat` will automatically initialize a clean, empty database. You can then use the Admin Panel or the scripts below to populate it with your own department's data.
+
 ### Adding a new suspect manually:
-Use the provided Python script to embed a new suspect directly into the database:
+Use the Admin Upload tab in the UI, or the provided Python script to embed a new suspect directly into the database:
 ```bash
 python scripts/add_suspect.py "John Doe" "path/to/photo.jpg"
 ```
