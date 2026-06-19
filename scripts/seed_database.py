@@ -70,8 +70,10 @@ def seed(app, conn):
     print("Found %d images in %s\n" % (total, SUBSET_DIR))
 
     if total == 0:
-        print("ERROR: No images found. Run download_dataset.py first.")
-        sys.exit(1)
+        print("INFO: No sample images found in dataset/lfw_subset.")
+        print("INFO: An empty database has been successfully created.")
+        print("INFO: You can now use the Admin Panel or bulk import scripts to add your own data.")
+        sys.exit(0)
 
     inserted = 0
     skipped  = 0
